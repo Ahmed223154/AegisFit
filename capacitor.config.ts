@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.aegisfit.app',
+  appId: 'com.aegisfit.gymtracker',
   appName: 'AegisFit',
   webDir: 'dist',
   server: {
