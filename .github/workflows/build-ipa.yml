@@ -33,29 +33,17 @@ jobs:
             npx cap add ios
           fi
           npx cap sync ios
-          cd ios/App && pod install && cd ../..
 
-      - name: Build iOS App with xcodebuild
+      - name: Build iOS App with xcodebuild (SPM)
         run: |
-          if [ -d "ios/App/App.xcworkspace" ]; then
-            xcodebuild -workspace ios/App/App.xcworkspace \
-                       -scheme App \
-                       -configuration Release \
-                       -sdk iphoneos \
-                       CODE_SIGNING_ALLOWED=NO \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGN_IDENTITY="" \
-                       clean build
-          else
-            xcodebuild -project ios/App/App.xcodeproj \
-                       -scheme App \
-                       -configuration Release \
-                       -sdk iphoneos \
-                       CODE_SIGNING_ALLOWED=NO \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGN_IDENTITY="" \
-                       clean build
-          fi
+          xcodebuild -project ios/App/App.xcodeproj \
+                     -scheme App \
+                     -configuration Release \
+                     -destination 'generic/platform=iOS' \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGN_IDENTITY="" \
+                     clean build
 
       - name: Package Unsigned .ipa for SideStore
         run: |
