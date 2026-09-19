@@ -1,0 +1,6 @@
+{
+  "name": "AegisFit",
+  "description": "Cross-platform offline fitness, nutrition, supplement protocol, and biometric tracking app with futuristic telemetry HUD and multi-language English/Arabic support.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
