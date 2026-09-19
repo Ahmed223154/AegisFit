@@ -1,0 +1,78 @@
+name: Build AegisFit Unsigned IPA
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: Build Unsigned IPA for SideStore
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm install
+
+      - name: Build Web Assets
+        run: |
+          npm run build
+
+      - name: Prepare Capacitor iOS Project
+        run: |
+          if [ ! -d "ios" ]; then
+            echo "Adding iOS platform..."
+            npx cap add ios
+          fi
+          echo "Syncing Capacitor iOS project..."
+          npx cap sync ios
+
+      - name: Build iOS App with xcodebuild
+        run: |
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+
+      - name: Package Unsigned .ipa for SideStore
+        run: |
+          echo "Searching for built App.app bundle..."
+          APP_DIR=$(find ios/App/build/DerivedData ~/Library/Developer/Xcode/DerivedData -name "App.app" -type d 2>/dev/null | head -n 1)
+          
+          if [ -z "$APP_DIR" ]; then
+            echo "Error: App.app not found!"
+            exit 1
+          fi
+
+          echo "Found application bundle at: $APP_DIR"
+          rm -rf Payload App.ipa
+          mkdir -p Payload
+          cp -R "$APP_DIR" Payload/
+          zip -r App.ipa Payload
+          echo "Successfully created App.ipa"
+
+      - name: Upload Unsigned IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AegisFit-Unsigned-IPA
+          path: App.ipa
+          retention-days: 14

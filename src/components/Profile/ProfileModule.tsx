@@ -278,30 +278,19 @@ npx cap sync ios`}
             <div className="space-y-1">
               <div className="text-cyan-400 font-bold flex items-center gap-1 text-[11px]">
                 <FileCode className="w-3.5 h-3.5" />
-                <span>2. GitHub Actions .ipa Workflow</span>
+                <span>Pre-Configured CI/CD Workflow</span>
               </div>
+              <p className="text-slate-400 text-[10px]">
+                <code className="text-cyan-300">.github/workflows/build-ipa.yml</code> and <code className="text-cyan-300">capacitor.config.ts</code> are already included in this repository. When you push to GitHub, Actions builds your unsigned <code className="text-cyan-300">App.ipa</code> automatically.
+              </p>
               <pre className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300 overflow-x-auto text-[10px]">
-{`name: Build AegisFit IPA
-on: [push]
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci && npm run build
-      - run: npx cap sync ios
-      - name: Build Xcode Archive
-        run: |
-          cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath AegisFit.xcarchive archive CODE_SIGNING_ALLOWED=NO
-          mkdir -p Payload && cp -r AegisFit.xcarchive/Products/Applications/App.app Payload/
-          zip -r AegisFit.ipa Payload
-      - uses: actions/upload-artifact@v4
-        with:
-          name: AegisFit-IPA
-          path: ios/App/AegisFit.ipa`}
+{`# Automated on every push to main / master:
+1. actions/checkout@v4 & node 20 setup
+2. npm install && npm run build
+3. npx cap sync ios
+4. xcodebuild (CODE_SIGNING_ALLOWED=NO)
+5. Zip Payload/App.app -> App.ipa
+6. Artifact: AegisFit-Unsigned-IPA`}
               </pre>
             </div>
 
