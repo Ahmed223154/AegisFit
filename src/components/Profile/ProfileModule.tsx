@@ -7,14 +7,12 @@ import {
   Download, 
   Upload, 
   RotateCcw, 
-  Shield, 
-  Smartphone, 
+  Sparkles, 
   CheckCircle, 
-  Award, 
-  FileCode, 
-  Terminal, 
-  ExternalLink,
-  Zap
+  Zap,
+  Target,
+  Flame,
+  Droplets
 } from 'lucide-react';
 import { scheduleLocalNotification } from '../../utils/nativeCapabilities';
 
@@ -28,22 +26,18 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({ onOpenSurvey }) =>
     setLanguage, 
     t, 
     profile, 
-    updateProfile, 
     resetAllData,
     exportAppDataJson,
-    importAppDataJson,
-    hourlyWaterAlerts,
-    setHourlyWaterAlerts
+    importAppDataJson
   } = useApp();
 
   const [testNotifSent, setTestNotifSent] = useState(false);
-  const [showDeploymentGuide, setShowDeploymentGuide] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
   const handleTestNotification = async () => {
     await scheduleLocalNotification(
-      'AegisFit Combat Telemetry',
-      'Hydration and hypertrophy targets calibrated. Stay focused on the mission!',
+      'AegisFit Reminder',
+      'Time to hydrate and check your daily nutrition targets!',
       1
     );
     setTestNotifSent(true);
@@ -70,9 +64,9 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({ onOpenSurvey }) =>
       const content = event.target?.result as string;
       const success = await importAppDataJson(content);
       if (success) {
-        setImportStatus('Database successfully restored from offline backup!');
+        setImportStatus(language === 'ar' ? 'تم استرجاع البيانات بنجاح!' : 'Data restored successfully from backup!');
       } else {
-        setImportStatus('Failed to parse backup file. Invalid format.');
+        setImportStatus(language === 'ar' ? 'فشل استرجاع الملف. صيغة غير صالحة.' : 'Failed to parse backup file. Invalid format.');
       }
       setTimeout(() => setImportStatus(null), 4000);
     };
@@ -80,234 +74,164 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({ onOpenSurvey }) =>
   };
 
   return (
-    <div className="space-y-3 pb-6">
-      {/* Mobile-First Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div className="flex items-center gap-1.5">
+    <div className="space-y-4 pb-6 max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex items-center gap-2">
           <User className="w-5 h-5 text-cyan-400" />
-          <h2 className="text-base font-bold tracking-wider text-slate-100 font-telemetry uppercase">
+          <h2 className="text-lg font-bold text-slate-100 uppercase tracking-wide">
             {t.profile.moduleTitle}
           </h2>
         </div>
 
-        {/* Language Switcher (Min 38px touch button) */}
+        {/* Language Switcher */}
         <button
           type="button"
           onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-          className="flex items-center gap-1.5 px-3 min-h-[38px] rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 font-bold text-xs transition-all"
+          className="flex items-center gap-1.5 px-3 min-h-[40px] rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 font-bold text-xs transition-all"
         >
-          <Languages className="w-3.5 h-3.5" />
+          <Languages className="w-4 h-4" />
           <span>{language === 'en' ? 'العربية' : 'English'}</span>
         </button>
       </div>
 
-      {/* Profile Overview Card (Mobile Stack) */}
-      <div className="glass-panel p-3.5 rounded-2xl border border-slate-800 space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-telemetry font-black text-xl glow-cyan shrink-0">
+      {/* User Profile Card */}
+      <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-black text-xl glow-cyan shrink-0">
             {profile.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-100 font-telemetry uppercase truncate">
+              <h3 className="text-base font-bold text-slate-100 truncate">
                 {profile.name}
               </h3>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-950 text-cyan-400 border border-cyan-800 shrink-0">
-                LVL {profile.currentLevel}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-950 text-cyan-400 border border-cyan-800 shrink-0">
+                {t.common.level} {profile.currentLevel}
               </span>
             </div>
-            <div className="text-[11px] font-mono text-slate-400 truncate">
-              Goal: <span className="text-cyan-300 capitalize font-bold">{profile.primaryGoal.replace('_', ' ')}</span>
+            <div className="text-xs text-slate-400 truncate mt-0.5">
+              {language === 'ar' ? 'الهدف:' : 'Goal:'} <span className="text-cyan-300 capitalize font-bold">{profile.primaryGoal.replace('_', ' ')}</span>
             </div>
-            <div className="text-[10px] text-amber-400 font-mono">
-              {profile.totalXp} XP • {profile.streakDays} Day Streak 🔥
+            <div className="text-[11px] text-amber-400 font-mono mt-0.5">
+              {profile.totalXp} XP • {profile.streakDays} {t.common.days} {t.common.streak} 🔥
             </div>
           </div>
         </div>
 
+        {/* Retake Assessment Button */}
         <button
           type="button"
           onClick={onOpenSurvey}
-          className="w-full min-h-[44px] rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 active:scale-[0.98] text-slate-950 shadow-md shadow-cyan-500/30 transition-all font-telemetry uppercase flex items-center justify-center gap-1.5"
+          className="w-full min-h-[48px] rounded-xl text-sm font-bold bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 active:scale-[0.98] text-slate-950 shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-2"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Recalibrate Assessment</span>
+          <Sparkles className="w-4 h-4 fill-current" />
+          <span>{t.profile.recalculateStats}</span>
         </button>
       </div>
 
-      {/* Target Metrics Telemetry Grid (2x2) */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="glass-panel p-3 rounded-xl border border-slate-800">
-          <span className="text-[9px] font-mono text-slate-400 block uppercase">CALORIC TARGET</span>
-          <span className="text-base font-bold text-slate-100 font-telemetry">{profile.targetCalories} kcal</span>
+      {/* Target Stats Overview Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="glass-panel p-3 rounded-xl border border-slate-800 text-center">
+          <span className="text-[11px] text-slate-400 block font-medium">{t.nutrition.calories}</span>
+          <span className="text-base font-bold text-slate-100 mt-0.5 block">{profile.targetCalories} kcal</span>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-slate-800">
-          <span className="text-[9px] font-mono text-slate-400 block uppercase">PROTEIN TARGET</span>
-          <span className="text-base font-bold text-emerald-400 font-telemetry">{profile.targetProteinGrams} g</span>
+        <div className="glass-panel p-3 rounded-xl border border-slate-800 text-center">
+          <span className="text-[11px] text-emerald-400 block font-medium">{t.nutrition.protein}</span>
+          <span className="text-base font-bold text-emerald-400 mt-0.5 block">{profile.targetProteinGrams} g</span>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-slate-800">
-          <span className="text-[9px] font-mono text-slate-400 block uppercase">BODYWEIGHT</span>
-          <span className="text-base font-bold text-slate-100 font-telemetry">{profile.weightKg} kg</span>
+        <div className="glass-panel p-3 rounded-xl border border-slate-800 text-center">
+          <span className="text-[11px] text-slate-400 block font-medium">{t.survey.weight}</span>
+          <span className="text-base font-bold text-slate-100 mt-0.5 block">{profile.weightKg} kg</span>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-slate-800">
-          <span className="text-[9px] font-mono text-slate-400 block uppercase">BODY FAT %</span>
-          <span className="text-base font-bold text-amber-400 font-telemetry">{profile.bodyFatPercent}%</span>
+        <div className="glass-panel p-3 rounded-xl border border-slate-800 text-center">
+          <span className="text-[11px] text-blue-400 block font-medium">{t.water.dailyHydrationTarget}</span>
+          <span className="text-base font-bold text-blue-300 mt-0.5 block">{profile.targetWaterMl} ml</span>
         </div>
       </div>
 
-      {/* Native Notifications & Device Bridges */}
-      <div className="glass-panel p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
-        <div className="flex items-center gap-1.5">
+      {/* Local Push Notifications */}
+      <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-3">
+        <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-xs font-bold text-slate-100 font-telemetry uppercase">
-            Native Push & Telemetry Signals
+          <h3 className="text-sm font-bold text-slate-100">
+            {language === 'ar' ? 'التنبيهات والإشعارات المحلية' : 'Local Push Notifications'}
           </h3>
         </div>
 
-        <p className="text-[11px] text-slate-400 leading-snug">
-          AegisFit integrates natively with iOS Local Notifications via `@capacitor/local-notifications` for offline alarms.
+        <p className="text-xs text-slate-400 leading-relaxed">
+          {language === 'ar'
+            ? 'يرسل التطبيق تذكيرات للشرب والتمارين محلياً على هاتفك دون الحاجة لأي خوادم خارجية.'
+            : 'AegisFit sends local reminders directly on your device without relying on external servers.'}
         </p>
 
-        <div className="space-y-2 pt-0.5">
-          <button
-            type="button"
-            onClick={handleTestNotification}
-            className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-850 text-cyan-300 border border-slate-700 transition-all"
-          >
-            <Zap className="w-4 h-4 text-amber-400" />
-            <span>Test Native iOS Notification</span>
-          </button>
+        <button
+          type="button"
+          onClick={handleTestNotification}
+          className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-850 text-cyan-300 border border-slate-700 transition-all"
+        >
+          <Zap className="w-4 h-4 text-amber-400" />
+          <span>{language === 'ar' ? 'تجربة إرسال تنبيه محلي' : 'Send Test Notification'}</span>
+        </button>
 
-          {testNotifSent && (
-            <div className="p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-              <span>Notification dispatched to system banner!</span>
-            </div>
-          )}
-        </div>
+        {testNotifSent && (
+          <div className="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-400 font-mono flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            <span>{language === 'ar' ? 'تم إرسال التنبيه التجريبي بنجاح!' : 'Notification successfully scheduled!'}</span>
+          </div>
+        )}
       </div>
 
-      {/* Offline Data Management (Export / Import / Reset) */}
-      <div className="glass-panel p-3.5 rounded-2xl border border-slate-800 space-y-3">
-        <div className="flex items-center gap-1.5">
+      {/* Offline Data Management */}
+      <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-3">
+        <div className="flex items-center gap-2">
           <Download className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-xs font-bold text-slate-100 font-telemetry uppercase">
-            {t.profile.exportData} & Offline Backup
+          <h3 className="text-sm font-bold text-slate-100">
+            {t.profile.exportData}
           </h3>
         </div>
 
-        <p className="text-[11px] text-slate-400 leading-snug">
-          Your data is stored 100% locally on your iPhone. Export a JSON snapshot anytime or restore from backup.
+        <p className="text-xs text-slate-400 leading-relaxed">
+          {language === 'ar'
+            ? 'جميع بياناتك مسجلة بأمان على هاتفك دون إنترنت. يمكنك أخذ نسخة احتياطية بصيغة JSON متى أردت.'
+            : 'All your workouts and nutrition logs are stored privately on your device. Export a backup or restore at any time.'}
         </p>
 
         {importStatus && (
-          <div className="p-2 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-xs font-mono text-cyan-300">
+          <div className="p-2.5 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-xs text-cyan-300">
             {importStatus}
           </div>
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5 pt-1">
           <button
             type="button"
             onClick={handleExport}
-            className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/30 transition-all"
+            className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/25 transition-all"
           >
             <Download className="w-4 h-4" />
-            <span>Export JSON Database</span>
+            <span>{t.common.exportBackup}</span>
           </button>
 
           <label className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-700 cursor-pointer transition-all">
             <Upload className="w-4 h-4 text-cyan-400" />
-            <span>Restore Backup</span>
+            <span>{t.common.importBackup}</span>
             <input type="file" accept=".json" onChange={handleImportFile} className="hidden" />
           </label>
 
           <button
             type="button"
             onClick={() => {
-              if (window.confirm('Reset all local data back to factory parameters? This cannot be undone.')) {
+              if (window.confirm(language === 'ar' ? 'هل أنت متأكد من مسح جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.' : 'Reset all local data back to initial empty state? This cannot be undone.')) {
                 resetAllData();
               }
             }}
             className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/40 border border-rose-900/50 transition-all"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
             <span>{t.profile.resetData}</span>
           </button>
         </div>
-      </div>
-
-      {/* SideStore & iPhone 13 Pro Max Deployment Engine Guide */}
-      <div className="glass-panel p-3.5 rounded-2xl border border-cyan-500/30 space-y-3 glow-cyan">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Smartphone className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-xs font-bold text-slate-100 font-telemetry uppercase">
-              SideStore Deployment Guide
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowDeploymentGuide(!showDeploymentGuide)}
-            className="px-2.5 min-h-[36px] rounded-lg text-xs font-mono text-cyan-300 bg-slate-900 border border-slate-700"
-          >
-            {showDeploymentGuide ? 'Hide' : 'Guide'}
-          </button>
-        </div>
-
-        <p className="text-[11px] text-slate-300 leading-snug">
-          Deploy AegisFit directly onto an iPhone 13 Pro Max via Capacitor, GitHub Actions, and SideStore without a paid Apple Developer Account.
-        </p>
-
-        {showDeploymentGuide && (
-          <div className="space-y-3 pt-2 border-t border-slate-800 text-xs text-slate-300 font-mono">
-            <div className="space-y-1">
-              <div className="text-cyan-400 font-bold flex items-center gap-1 text-[11px]">
-                <Terminal className="w-3.5 h-3.5" />
-                <span>1. Local Capacitor iOS Init</span>
-              </div>
-              <pre className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-cyan-300 overflow-x-auto text-[10px]">
-{`npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/local-notifications @capacitor/haptics
-npx cap init "AegisFit" "com.aegisfit.telemetry" --web-dir dist
-npm run build
-npx cap add ios
-npx cap sync ios`}
-              </pre>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-cyan-400 font-bold flex items-center gap-1 text-[11px]">
-                <FileCode className="w-3.5 h-3.5" />
-                <span>Pre-Configured CI/CD Workflow</span>
-              </div>
-              <p className="text-slate-400 text-[10px]">
-                <code className="text-cyan-300">.github/workflows/build-ipa.yml</code> and <code className="text-cyan-300">capacitor.config.ts</code> are already included in this repository. When you push to GitHub, Actions builds your unsigned <code className="text-cyan-300">App.ipa</code> automatically.
-              </p>
-              <pre className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300 overflow-x-auto text-[10px]">
-{`# Automated on every push to main / master:
-1. actions/checkout@v4 & node 20 setup
-2. npm install && npm run build
-3. npx cap sync ios
-4. xcodebuild (CODE_SIGNING_ALLOWED=NO)
-5. Zip Payload/App.app -> App.ipa
-6. Artifact: AegisFit-Unsigned-IPA`}
-              </pre>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-cyan-400 font-bold flex items-center gap-1 text-[11px]">
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>3. SideStore Sideloading</span>
-              </div>
-              <ol className="list-decimal list-inside space-y-1 text-slate-400 text-[10px]">
-                <li>Install SideStore on your iPhone 13 Pro Max using AltServer (one-time setup) with WireGuard VPN configured.</li>
-                <li>Download the generated <code className="text-cyan-300">AegisFit.ipa</code> artifact from your GitHub repository onto your iPhone Files app.</li>
-                <li>Open SideStore on your iPhone, tap <strong>"+"</strong> in "My Apps", and select <code className="text-cyan-300">AegisFit.ipa</code>.</li>
-                <li>SideStore signs AegisFit with your free Apple ID and installs it to your home screen!</li>
-              </ol>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

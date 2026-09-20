@@ -94,6 +94,7 @@ interface AppContextType {
   dismissBanner: () => void;
   awardXp: (amount: number, reason: string) => Promise<void>;
   getWeeklyMuscleSetCounts: () => Record<MuscleGroup, number>;
+  logQuickSet: (exerciseId: string, weightKg?: number, reps?: number) => Promise<void>;
 
   // Data management
   resetAllData: () => Promise<void>;
@@ -102,31 +103,31 @@ interface AppContextType {
 }
 
 const DEFAULT_PROFILE: UserProfile = {
-  id: 'aegis_pilot_1',
-  name: 'Commander',
-  age: 27,
+  id: 'aegis_user_1',
+  name: 'Athlete',
+  age: 26,
   gender: 'male',
-  heightCm: 182,
-  weightKg: 82.5,
-  targetWeightKg: 85.0,
-  activityLevel: 'very_active',
+  heightCm: 178,
+  weightKg: 78.0,
+  targetWeightKg: 80.0,
+  activityLevel: 'moderate',
   primaryGoal: 'hypertrophy',
   experienceLevel: 'intermediate',
   dietaryFramework: 'high_protein',
   limitations: [],
   unitSystem: 'metric',
   language: 'en',
-  onboardingCompleted: true,
-  bmr: 1880,
-  tdee: 3240,
-  targetCalories: 3490,
-  targetProteinGrams: 180,
-  targetCarbsGrams: 420,
-  targetFatsGrams: 85,
-  targetWaterMl: 3750,
-  currentLevel: 3,
-  totalXp: 850,
-  streakDays: 4,
+  onboardingCompleted: false,
+  bmr: 1750,
+  tdee: 2700,
+  targetCalories: 2800,
+  targetProteinGrams: 160,
+  targetCarbsGrams: 340,
+  targetFatsGrams: 75,
+  targetWaterMl: 3200,
+  currentLevel: 1,
+  totalXp: 0,
+  streakDays: 0,
   lastActiveDate: new Date().toISOString().split('T')[0]
 };
 
@@ -156,8 +157,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [waterLog, setWaterLog] = useState<WaterLog>({
     date: new Date().toISOString().split('T')[0],
-    currentMl: 1250,
-    targetMl: 3750,
+    currentMl: 0,
+    targetMl: 3200,
     entries: []
   });
 
@@ -220,50 +221,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       setWeeklySplit(savedSplit);
 
-      const savedWorkouts = await getItem<WorkoutSession[]>(StorageKeys.WORKOUT_SESSIONS, [
-        // Seed initial sample workout session for immediate telemetry & heatmap
-        {
-          id: 'wk_sample_1',
-          title: 'Upper Heavy Kinetic Protocol',
-          date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
-          durationMinutes: 52,
-          totalVolumeKg: 6420,
-          rating: 5,
-          xpEarned: 220,
-          exercises: [
-            {
-              exerciseId: 'ch_1',
-              exerciseName: 'Barbell Flat Bench Press',
-              muscleGroup: 'chest',
-              sets: [
-                { id: 's1', setNumber: 1, weightKg: 80, reps: 8, completed: true },
-                { id: 's2', setNumber: 2, weightKg: 85, reps: 6, completed: true },
-                { id: 's3', setNumber: 3, weightKg: 90, reps: 5, completed: true }
-              ]
-            },
-            {
-              exerciseId: 'bk_3',
-              exerciseName: 'Barbell Bent-Over Row',
-              muscleGroup: 'back_upper',
-              sets: [
-                { id: 's4', setNumber: 1, weightKg: 75, reps: 8, completed: true },
-                { id: 's5', setNumber: 2, weightKg: 80, reps: 8, completed: true },
-                { id: 's6', setNumber: 3, weightKg: 80, reps: 7, completed: true }
-              ]
-            },
-            {
-              exerciseId: 'sh_2',
-              exerciseName: 'Dumbbell Lateral Raises',
-              muscleGroup: 'shoulders',
-              sets: [
-                { id: 's7', setNumber: 1, weightKg: 14, reps: 15, completed: true },
-                { id: 's8', setNumber: 2, weightKg: 16, reps: 12, completed: true },
-                { id: 's9', setNumber: 3, weightKg: 16, reps: 12, completed: true }
-              ]
-            }
-          ]
-        }
-      ]);
+      const savedWorkouts = await getItem<WorkoutSession[]>(StorageKeys.WORKOUT_SESSIONS, []);
       setWorkouts(savedWorkouts);
 
       const savedTrophies = await getItem<Trophy[]>(StorageKeys.TROPHIES, SEED_TROPHIES);
@@ -272,41 +230,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const nutritionKey = `${StorageKeys.DAILY_NUTRITION_PREFIX}${todayStr}`;
       const savedTodayNutr = await getItem<DailyNutritionLog>(nutritionKey, {
         date: todayStr,
-        entries: [
-          {
-            id: 'init_meal_1',
-            name: 'Greek Yogurt 0% Fat',
-            servingCount: 1,
-            calories: 100,
-            proteinGrams: 18,
-            carbsGrams: 6,
-            fatsGrams: 0,
-            mealCategory: 'breakfast',
-            loggedAt: new Date().toISOString()
-          },
-          {
-            id: 'init_meal_2',
-            name: 'Grilled Chicken Breast',
-            servingCount: 1.5,
-            calories: 247,
-            proteinGrams: 46,
-            carbsGrams: 0,
-            fatsGrams: 5,
-            mealCategory: 'lunch',
-            loggedAt: new Date().toISOString()
-          },
-          {
-            id: 'init_meal_3',
-            name: 'Cooked Basmati Rice',
-            servingCount: 1.5,
-            calories: 292,
-            proteinGrams: 6,
-            carbsGrams: 63,
-            fatsGrams: 1,
-            mealCategory: 'lunch',
-            loggedAt: new Date().toISOString()
-          }
-        ]
+        entries: []
       });
       setTodayNutrition(savedTodayNutr);
 
@@ -314,55 +238,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSupplements(savedSupplements);
 
       const suppLogKey = `${StorageKeys.DAILY_SUPPLEMENT_PREFIX}${todayStr}`;
-      const savedTodaySuppLog = await getItem<string[]>(suppLogKey, ['sup_5']);
+      const savedTodaySuppLog = await getItem<string[]>(suppLogKey, []);
       setTodaySupplementChecklist(savedTodaySuppLog);
 
-      const savedBiomarkers = await getItem<BiomarkerRecord[]>(StorageKeys.BIOMARKER_RECORDS, [
-        {
-          id: 'bio_init_1',
-          biomarkerId: 'testosterone_total',
-          value: 740,
-          date: '2026-09-01',
-          status: 'optimal',
-          notes: 'Morning draw fasted'
-        },
-        {
-          id: 'bio_init_2',
-          biomarkerId: 'vitamin_d',
-          value: 58,
-          date: '2026-09-01',
-          status: 'optimal'
-        },
-        {
-          id: 'bio_init_3',
-          biomarkerId: 'fasting_glucose',
-          value: 84,
-          date: '2026-09-01',
-          status: 'optimal'
-        }
-      ]);
+      const savedBiomarkers = await getItem<BiomarkerRecord[]>(StorageKeys.BIOMARKER_RECORDS, []);
       setBiomarkerRecords(savedBiomarkers);
 
       const waterKey = `${StorageKeys.DAILY_WATER_PREFIX}${todayStr}`;
       const savedWater = await getItem<WaterLog>(waterKey, {
         date: todayStr,
-        currentMl: 1500,
-        targetMl: savedProfile.targetWaterMl || 3750,
-        entries: [
-          { id: 'w1', timestamp: '08:30', amountMl: 500 },
-          { id: 'w2', timestamp: '11:15', amountMl: 500 },
-          { id: 'w3', timestamp: '14:00', amountMl: 500 }
-        ]
+        currentMl: 0,
+        targetMl: savedProfile.targetWaterMl || 3200,
+        entries: []
       });
       setWaterLog(savedWater);
 
-      const savedWeightHistory = await getItem<BodyweightEntry[]>(StorageKeys.BODYWEIGHT_HISTORY, [
-        { id: 'bw1', date: '2026-09-10', weightKg: 83.2 },
-        { id: 'bw2', date: '2026-09-12', weightKg: 83.0 },
-        { id: 'bw3', date: '2026-09-14', weightKg: 82.8 },
-        { id: 'bw4', date: '2026-09-16', weightKg: 82.6 },
-        { id: 'bw5', date: '2026-09-18', weightKg: 82.5 }
-      ]);
+      const savedWeightHistory = await getItem<BodyweightEntry[]>(StorageKeys.BODYWEIGHT_HISTORY, []);
       setBodyweightHistory(savedWeightHistory);
 
       setIsLoaded(true);
@@ -727,6 +618,100 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return counts;
   }, [workouts]);
 
+  const logQuickSet = async (exerciseId: string, weightKg: number = 60, reps: number = 10) => {
+    const exercise = exercises.find(e => e.id === exerciseId);
+    if (!exercise) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayWorkout = workouts.find(w => w.date === todayStr);
+    let updatedWorkouts: WorkoutSession[];
+
+    if (todayWorkout) {
+      const existingExIndex = todayWorkout.exercises.findIndex(e => e.exerciseId === exercise.id);
+      const updatedExercises = [...todayWorkout.exercises];
+
+      if (existingExIndex >= 0) {
+        const targetEx = updatedExercises[existingExIndex];
+        const newSetNumber = targetEx.sets.length + 1;
+        const newSet = {
+          id: `s_${Date.now()}_${newSetNumber}`,
+          setNumber: newSetNumber,
+          weightKg,
+          reps,
+          completed: true
+        };
+        updatedExercises[existingExIndex] = {
+          ...targetEx,
+          sets: [...targetEx.sets, newSet]
+        };
+      } else {
+        updatedExercises.push({
+          exerciseId: exercise.id,
+          exerciseName: exercise.nameEn,
+          muscleGroup: exercise.primaryMuscle,
+          sets: [
+            {
+              id: `s_${Date.now()}_1`,
+              setNumber: 1,
+              weightKg,
+              reps,
+              completed: true
+            }
+          ]
+        });
+      }
+
+      const totalVol = updatedExercises.reduce((vol, ex) => {
+        return vol + ex.sets.reduce((sVol, s) => s.completed ? sVol + ((s.weightKg || 0) * (s.reps || 0)) : sVol, 0);
+      }, 0);
+
+      const updatedTodayWorkout: WorkoutSession = {
+        ...todayWorkout,
+        exercises: updatedExercises,
+        totalVolumeKg: totalVol
+      };
+
+      updatedWorkouts = workouts.map(w => w.id === todayWorkout.id ? updatedTodayWorkout : w);
+    } else {
+      const newSession: WorkoutSession = {
+        id: `session_${Date.now()}`,
+        title: language === 'ar' ? `تمرين ${exercise.nameAr}` : `${exercise.nameEn} Session`,
+        date: todayStr,
+        durationMinutes: 15,
+        rating: 5,
+        exercises: [
+          {
+            exerciseId: exercise.id,
+            exerciseName: exercise.nameEn,
+            muscleGroup: exercise.primaryMuscle,
+            sets: [
+              {
+                id: `s_${Date.now()}_1`,
+                setNumber: 1,
+                weightKg,
+                reps,
+                completed: true
+              }
+            ]
+          }
+        ],
+        totalVolumeKg: weightKg * reps,
+        xpEarned: 35
+      };
+      updatedWorkouts = [newSession, ...workouts];
+    }
+
+    setWorkouts(updatedWorkouts);
+    await saveItem(StorageKeys.WORKOUT_SESSIONS, updatedWorkouts);
+    const exName = language === 'ar' ? exercise.nameAr : exercise.nameEn;
+    setBannerMessage({
+      type: 'xp',
+      text: language === 'ar' ? `تم تسجيل جولة: ${exName}` : `+1 Set Logged: ${exName}`,
+      subtext: language === 'ar' ? `+30 نقطة خبرة • تم تحديث خريطة العضلات` : `+30 XP • Heatmap updated`
+    });
+    await awardXp(30, `${exercise.nameEn} Set Logged`);
+  };
+
   const resetAllData = async () => {
     localStorage.clear();
     setProfile(DEFAULT_PROFILE);
@@ -832,6 +817,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         dismissBanner,
         awardXp,
         getWeeklyMuscleSetCounts,
+        logQuickSet,
         resetAllData,
         exportAppDataJson,
         importAppDataJson

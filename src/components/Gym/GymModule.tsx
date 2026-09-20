@@ -184,8 +184,8 @@ export const GymModule: React.FC = () => {
       secondaryMuscles: [],
       category: newExCategory,
       difficulty: 'intermediate',
-      instructionsEn: 'Tactical custom exercise movement pattern.',
-      instructionsAr: 'حركة تمرين تكتيكية مخصصة.',
+      instructionsEn: 'Custom exercise movement pattern.',
+      instructionsAr: 'تمرين مخصص.',
       targetRepRange: newExReps,
       defaultSets: 3
     };
@@ -282,7 +282,7 @@ export const GymModule: React.FC = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-[10px] font-mono text-cyan-400 tracking-widest uppercase">
-                      COMBAT PROTOCOL LIVE
+                      {language === 'ar' ? 'جلسة تمرين نشطة' : 'ACTIVE WORKOUT SESSION'}
                     </div>
                     <h3 className="text-base font-black text-slate-100 font-telemetry">
                       {activeWorkout.title}
@@ -435,7 +435,7 @@ export const GymModule: React.FC = () => {
                       className="mt-2 w-full min-h-[40px] rounded-lg border border-dashed border-slate-700 text-slate-400 hover:text-cyan-300 hover:border-cyan-500/40 text-xs font-mono flex items-center justify-center gap-1 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>Add Additional Set</span>
+                      <span>{language === 'ar' ? '+ إضافة جولة' : '+ Add Set'}</span>
                     </button>
                   </div>
                 ))}
@@ -458,11 +458,13 @@ export const GymModule: React.FC = () => {
                 <Dumbbell className="w-7 h-7" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-100 font-telemetry uppercase tracking-wider">
-                  Tactical Gym Protocol Idle
+                <h3 className="text-base font-bold text-slate-100 uppercase tracking-wider">
+                  {language === 'ar' ? 'لا يوجد تمرين نشط حالياً' : 'No Active Workout'}
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Select your prescribed split or start an adaptive free training session to begin telemetry logging.
+                  {language === 'ar' 
+                    ? 'ابدأ تمريناً من جدولك الأسبوعي أو ابدأ جلسة حرة لتسجيل الأوزان والجولات.'
+                    : 'Start a workout from your weekly split or launch a free workout to track your sets.'}
                 </p>
               </div>
 
@@ -492,8 +494,8 @@ export const GymModule: React.FC = () => {
       {activeTab === 'split' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] text-slate-400 font-mono">
-              7-Day Goal-Calibrated Kinetic Split
+            <p className="text-xs text-slate-400">
+              {language === 'ar' ? 'جدول التمارين الأسبوعي المخصص لك' : '7-Day Personalized Workout Schedule'}
             </p>
             <button
               type="button"
